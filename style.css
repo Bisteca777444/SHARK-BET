@@ -1,0 +1,51 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #111;
+    padding: 20px;
+    text-align: center;
+}
+
+nav a {
+    margin: 0 15px;
+    color: #00f2ff;
+    text-decoration: none;
+}
+
+.banner {
+    text-align: center;
+    padding: 100px 20px;
+    background: url('https://via.placeholder.com/1200x300') no-repeat center center;
+    background-size: cover;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 20px;
+    background: #00f2ff;
+    color: #000;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.game-list {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.game-item {
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+}
