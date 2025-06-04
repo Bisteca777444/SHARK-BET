@@ -1,45 +1,78 @@
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHARKBET - Cassino Online</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SHARKBET</title>
 </head>
 <body>
-    <header>
-        <h1>SHARKBET</h1>
-        <nav>
-            <a href="index.html">Início</a>
-            <a href="games.html">Jogos</a>
-            <a href="contact.html">Contato</a>
-        </nav>
-    </header>
-    <main>
-        <section class="banner">
-            <h2>Bem-vindo ao SHARKBET!</h2>
-            <p>Seu cassino online de confiança.</p>
-            <a href="games.html" class="btn">Jogar Agora</a>
-        </section>
-    </main>
-    <footer>
-        <p>© 2025 SHARKBET. Todos os direitos reservados.</p>
-        <p><a href="responsible.html">Jogo Responsável</a></p>
-        <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script>
-  netlifyIdentity.init();
+  <h1>SHARKBET - Login e Cadastro</h1>
 
-  // Abrir modal de login/cadastro
-  document.querySelector('#login-btn').addEventListener('click', () => {
-    netlifyIdentity.open();
-  });
+  <button onclick="netlifyIdentity.open()">Login / Cadastro</button>
+  <button onclick="fazerLogout()">Logout</button>
 
-  netlifyIdentity.on('login', user => {
-    console.log('Usuário logado:', user);
-  });
-</script>
+  <h2>Salvar Aposta</h2>
+  <input type="text" id="nome" placeholder="Nome">
+  <input type="number" id="aposta" placeholder="Valor da Aposta">
+  <button onclick="salvarAposta()">Salvar Aposta</button>
 
-    </footer>
+  <h2>Ver Apostas</h2>
+  <button onclick="verApostas()">Mostrar Apostas</button>
+  <ul id="lista-apostas"></ul>
+
+  <!-- Netlify Identity -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    netlifyIdentity.init();
+
+    function fazerLogout() {
+      netlifyIdentity.logout();
+    }
+  </script>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script>
+    // Troque pelos seus dados do Supabase:
+    const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
+    const SUPABASE_KEY = 'SUA_API_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function salvarAposta() {
+      const user = netlifyIdentity.currentUser();
+      if (!user) {
+        alert("Faça login primeiro!");
+        return;
+      }
+
+      const nome = document.getElementById('nome').value;
+      const aposta = parseInt(document.getElementById('aposta').value);
+
+      let { data, error } = await supabase
+        .from('usuarios')
+        .insert([{ email: user.email, nome: nome, aposta: aposta }]);
+
+      if (error) {
+        console.error(error);
+        alert("Erro ao salvar!");
+      } else {
+        alert("Aposta salva!");
+      }
+    }
+
+    async function verApostas() {
+      let { data: usuarios, error } = await supabase
+        .from('usuarios')
+        .select('*');
+
+      const lista = document.getElementById('lista-apostas');
+      lista.innerHTML = '';
+      usuarios.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = `${u.nome}: R$ ${u.aposta}`;
+        lista.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
