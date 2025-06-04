@@ -1,78 +1,144 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SHARKBET</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SHARKBET - Plataforma de Apostas</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1rem; }
+    h1, h2 { color: #007acc; }
+    button { margin: 0.5rem 0; padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    input { padding: 0.5rem; margin: 0.3rem 0; width: 100%; box-sizing: border-box; }
+    #lista-apostas { margin-top: 1rem; padding-left: 1rem; }
+  </style>
 </head>
 <body>
-  <h1>SHARKBET - Login e Cadastro</h1>
 
-  <button onclick="netlifyIdentity.open()">Login / Cadastro</button>
-  <button onclick="fazerLogout()">Logout</button>
+  <h1>SHARKBET</h1>
 
-  <h2>Salvar Aposta</h2>
-  <input type="text" id="nome" placeholder="Nome">
-  <input type="number" id="aposta" placeholder="Valor da Aposta">
-  <button onclick="salvarAposta()">Salvar Aposta</button>
+  <button id="btn-login">Login / Cadastro</button>
+  <button id="btn-logout" style="display:none;">Logout</button>
 
-  <h2>Ver Apostas</h2>
-  <button onclick="verApostas()">Mostrar Apostas</button>
-  <ul id="lista-apostas"></ul>
+  <section id="area-apostas" style="display:none;">
+    <h2>Nova Aposta</h2>
+    <input type="text" id="input-nome" placeholder="Seu nome" />
+    <input type="number" id="input-aposta" placeholder="Valor da aposta (R$)" />
+    <button id="btn-salvar">Salvar Aposta</button>
+
+    <h2>Lista de Apostas</h2>
+    <ul id="lista-apostas"></ul>
+  </section>
 
   <!-- Netlify Identity -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <script>
-    netlifyIdentity.init();
-
-    function fazerLogout() {
-      netlifyIdentity.logout();
-    }
-  </script>
 
   <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
+
   <script>
-    // Troque pelos seus dados do Supabase:
+    // --- Configurações Supabase (substitua com seus dados) ---
     const SUPABASE_URL = 'https://qvxskjtzqjnxipxszrjz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2eHNranR6cWpueGlweHN6cmp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjQzNDAsImV4cCI6MjA2NDY0MDM0MH0.6PB484Bg9TL4As7vLX5iB3mFdO94RlU3zSAOVeLaRww';
+
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function salvarAposta() {
+    // Inicializa Netlify Identity
+    netlifyIdentity.init();
+
+    // Elementos
+    const btnLogin = document.getElementById('btn-login');
+    const btnLogout = document.getElementById('btn-logout');
+    const areaApostas = document.getElementById('area-apostas');
+    const btnSalvar = document.getElementById('btn-salvar');
+    const listaApostas = document.getElementById('lista-apostas');
+
+    // Função para atualizar UI de acordo com o login
+    function atualizarInterface() {
+      const user = netlifyIdentity.currentUser();
+      if (user) {
+        btnLogin.style.display = 'none';
+        btnLogout.style.display = 'inline-block';
+        areaApostas.style.display = 'block';
+        carregarApostas();
+      } else {
+        btnLogin.style.display = 'inline-block';
+        btnLogout.style.display = 'none';
+        areaApostas.style.display = 'none';
+        listaApostas.innerHTML = '';
+      }
+    }
+
+    // Abrir modal de login / cadastro
+    btnLogin.addEventListener('click', () => {
+      netlifyIdentity.open();
+    });
+
+    // Logout
+    btnLogout.addEventListener('click', () => {
+      netlifyIdentity.logout();
+    });
+
+    // Atualiza interface ao fazer login/logout
+    netlifyIdentity.on('login', user => {
+      atualizarInterface();
+      netlifyIdentity.close();
+    });
+    netlifyIdentity.on('logout', () => {
+      atualizarInterface();
+    });
+
+    // Salvar nova aposta
+    btnSalvar.addEventListener('click', async () => {
       const user = netlifyIdentity.currentUser();
       if (!user) {
-        alert("Faça login primeiro!");
+        alert('Faça login para salvar apostas.');
         return;
       }
 
-      const nome = document.getElementById('nome').value;
-      const aposta = parseInt(document.getElementById('aposta').value);
+      const nome = document.getElementById('input-nome').value.trim();
+      const aposta = parseInt(document.getElementById('input-aposta').value);
 
-      let { data, error } = await supabase
+      if (!nome || isNaN(aposta) || aposta <= 0) {
+        alert('Por favor, preencha o nome e valor da aposta corretamente.');
+        return;
+      }
+
+      const { data, error } = await supabase
         .from('usuarios')
-        .insert([{ email: user.email, nome: nome, aposta: aposta }]);
+        .insert([{ email: user.email, nome, aposta }]);
 
       if (error) {
-        console.error(error);
-        alert("Erro ao salvar!");
+        alert('Erro ao salvar aposta: ' + error.message);
       } else {
-        alert("Aposta salva!");
+        alert('Aposta salva com sucesso!');
+        document.getElementById('input-nome').value = '';
+        document.getElementById('input-aposta').value = '';
+        carregarApostas();
       }
-    }
+    });
 
-    async function verApostas() {
-      let { data: usuarios, error } = await supabase
+    // Carregar e mostrar apostas
+    async function carregarApostas() {
+      const { data, error } = await supabase
         .from('usuarios')
-        .select('*');
+        .select('*')
+        .order('id', { ascending: false });
 
-      const lista = document.getElementById('lista-apostas');
-      lista.innerHTML = '';
-      usuarios.forEach(u => {
+      if (error) {
+        alert('Erro ao carregar apostas: ' + error.message);
+        return;
+      }
+
+      listaApostas.innerHTML = '';
+      data.forEach(aposta => {
         const li = document.createElement('li');
-        li.textContent = `${u.nome}: R$ ${u.aposta}`;
-        lista.appendChild(li);
+        li.textContent = `${aposta.nome} apostou R$ ${aposta.aposta}`;
+        listaApostas.appendChild(li);
       });
     }
+
+    // Inicializa interface ao carregar a página
+    window.onload = atualizarInterface;
   </script>
 </body>
 </html>
