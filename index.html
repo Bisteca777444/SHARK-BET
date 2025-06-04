@@ -26,6 +26,20 @@
     <footer>
         <p>© 2025 SHARKBET. Todos os direitos reservados.</p>
         <p><a href="responsible.html">Jogo Responsável</a></p>
+        <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+  netlifyIdentity.init();
+
+  // Abrir modal de login/cadastro
+  document.querySelector('#login-btn').addEventListener('click', () => {
+    netlifyIdentity.open();
+  });
+
+  netlifyIdentity.on('login', user => {
+    console.log('Usuário logado:', user);
+  });
+</script>
+
     </footer>
 </body>
 </html>
